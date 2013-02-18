@@ -91,11 +91,11 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 get_config() ->
-    PrivDir		= code:priv_dir(splunk),
-    KeyFile		= filename:join([PrivDir, "keys.config"]),
-    {ok, [Keys]}	= file:consult(KeyFile),
-    #state{access_token	= proplists:get_value(access_token, Keys),
-	   project_id	= proplists:get_value(project_id,   Keys)}.
+    {ok, AToken} = application:get_env(access_token),
+    {ok, ProjId} = application:get_env(project_id),
+
+    #state{access_token	= AToken,
+	   project_id	= ProjId}.
 
 
 send_to_splunk(Msg, State) ->
