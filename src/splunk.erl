@@ -1,6 +1,7 @@
 -module(splunk).
 
--export([send/1]).
+-export([access_common/1]).
 
-send(Payload) ->
-    splunk_serv:send(Payload).
+access_common(Payload) ->
+    splunk_serv:send({access_common, Payload}).
+
