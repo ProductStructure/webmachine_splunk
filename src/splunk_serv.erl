@@ -24,7 +24,7 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-send(Payload) ->
+send({access_common, Payload}) ->
     gen_server:cast(?MODULE, {access_common, Payload}).
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
