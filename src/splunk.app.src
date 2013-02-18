@@ -1,0 +1,17 @@
+%%-*- mode: erlang -*-
+{application, splunk,
+ [
+  {description, "Splunk Rest API Support"},
+  {vsn, "1"},
+  {modules, [splunk, splunk_app, splunk_sup, splunk_serv]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  crypto,
+		  inets
+                 ]},
+  
+  {mod, {splunk_app, []}}
+
+ ]}.
