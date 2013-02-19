@@ -36,6 +36,9 @@
 start(_StartType, _StartArgs) ->
     case splunk_sup:start_link() of
 	{ok, Pid} ->
+	    application:set_env(webmachine,
+				webmachine_logger_module, 
+				webmachine_splunk_logger),
 	    {ok, Pid};
 	Error ->
 	    Error
