@@ -55,6 +55,10 @@ start(_StartType, _StartArgs) ->
 %% @end
 %%--------------------------------------------------------------------
 stop(_State) ->
+    application:set_env(webmachine,
+			webmachine_logger_module, 
+			webmachine_logger),
+    
     ok.
 
 %%%===================================================================
