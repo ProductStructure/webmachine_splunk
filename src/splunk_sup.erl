@@ -60,10 +60,12 @@ init([]) ->
     Shutdown			= 2000,
     Type			= worker,
 
-    AChild			= {'splunk_serv', {'splunk_serv', start_link, []},
+    SPChild			= {'splunk_serv', {'splunk_serv', start_link, []},
 				   Restart, Shutdown, Type, ['splunk_serv']},
+    WSLChild			= {'webmachine_splunk_logger', {'webmachine_splunk_logger', start_link, []},
+				   Restart, Shutdown, Type, ['webmachine_splunk_logger']},
 
-    {ok, {SupFlags, [AChild]}}.
+    {ok, {SupFlags, [SPChild, WSLChild]}}.
 
 %%%===================================================================
 %%% Internal functions
