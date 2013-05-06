@@ -26,10 +26,12 @@
 -record(state, {}).
 
 
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 start_link(BaseDir) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [BaseDir], []).
 
-init([_]) ->
+init(_) ->
     defer_refresh(),
 
     {ok, #state{}}.

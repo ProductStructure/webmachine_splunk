@@ -62,9 +62,9 @@ init([]) ->
 
     SPChild			= {'splunk_serv', {'splunk_serv', start_link, []},
 				   Restart, Shutdown, Type, ['splunk_serv']},
-    WSLChild			= {'webmachine_splunk_logger', {'webmachine_splunk_logger', start_link, []},
+    WSLChild			= {'webmachine_splunk_logger', {'webmachine_splunk_logger', start_link, ["A"]},
 				   Restart, Shutdown, Type, ['webmachine_splunk_logger']},
-
+%WSLChild]
     {ok, {SupFlags, [SPChild, WSLChild]}}.
 
 %%%===================================================================
