@@ -109,7 +109,7 @@ send_to_splunk(Msg, State) ->
     {ok, {{_, 200, "OK"},
 	  Props, 
 	  Payload}}	= httpc:request(post, 
-					{Url, Headers, ContentType, Msg}, [], []),
+					{Url, Headers, ContentType, binary_to_list(iolist_to_binary( Msg))}, [], []),
     
     {Props,Payload}.
 
