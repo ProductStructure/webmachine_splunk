@@ -10,7 +10,7 @@
          terminate/2,
          code_change/3]).
 
-
+-compile([{parse_transform, lager_transform}]).
 -include_lib("webmachine/include/webmachine_logger.hrl").
 
 -ifdef(TEST).
@@ -27,7 +27,8 @@
 
 %% @private
 init([]) ->
-    {ok, {}}.
+  aws_credentials:s3(),
+  {ok, {}}.
 
 %% @private
 handle_call({_Label, MRef, get_modules}, State) ->
@@ -38,12 +39,26 @@ handle_call(_Request, State) ->
     {ok, ok, State}.
 
 %% @private
+handle_event({log_access, LogData = #wm_log_data{response_code = {500,_}}}, State) ->
+  %HANDLE 500 HERE!
+  Msg   = format_req(LogData),
+  case application:get_env(splunk,sns_topic) of
+    {ok, Topic} ->
+      Ref   = make_ref(),
+      aws_credentials:s3(),
+      lager:error("Web Error ~p ~p", [Ref,lager:pr(LogData, ?MODULE)]),
+      R     = sns:publish(Topic, "WebAPI Webmachine 500", io_lib:format("Error: ~p, Ref ~p", [LogData,Ref])),
+      lager:info("AWS Response ~p",  [R]);
+    undefined -> ok
+  end,
+  splunk:access_common(Msg),
+  {ok, State};
 handle_event({log_access, LogData}, State) ->
-    Msg = format_req(LogData),
-    splunk:access_common(Msg),
-    {ok, State};
+  Msg = format_req(LogData),
+  splunk:access_common(Msg),
+  {ok, State};
 handle_event(_Event, State) ->
-    {ok, State}.
+  {ok, State}.
 
 %% @private
 handle_info(_Info, State) ->
@@ -62,37 +77,37 @@ code_change(_OldVsn, State, _Extra) ->
 %% ===================================================================
 
 -spec(format_req(#wm_log_data{}) -> iolist()).
-format_req(#wm_log_data{resource_module	= Mod,
-                        start_time	= StartTime,
-                        method		= Method,
-                        peer		= Peer,
-                        path		= Path,
-                        version		= Version,
-                        response_code	= ResponseCode,
-                        response_length	= ResponseLength,
-                        end_time	= EndTime,
-                        finish_time	= FinishTime}) ->
-    Time	= webmachine_log:fmtnow(),
-    Status	= case ResponseCode of
-		      {Code, _ReasonPhrase} when is_integer(Code)  ->
-			  integer_to_list(Code);
-		      _ when is_integer(ResponseCode) ->
-			  integer_to_list(ResponseCode);
-		      _ ->
-			  ResponseCode
-		  end,
-    Length	= integer_to_list(ResponseLength),
-    TTPD	= webmachine_util:now_diff_milliseconds(EndTime, StartTime),
-    TTPS	= webmachine_util:now_diff_milliseconds(FinishTime, EndTime),
+format_req(#wm_log_data{resource_module = Mod,
+                        start_time      = StartTime,
+                        method          = Method,
+                        peer            = Peer,
+                        path            = Path,
+                        version         = Version,
+                        response_code   = ResponseCode,
+                        response_length = ResponseLength,
+                        end_time        = EndTime,
+                        finish_time     = FinishTime}) ->
+    Time        = webmachine_log:fmtnow(),
+    Status      = case ResponseCode of
+                      {Code, _ReasonPhrase} when is_integer(Code)  ->
+                          integer_to_list(Code);
+                      _ when is_integer(ResponseCode) ->
+                          integer_to_list(ResponseCode);
+                      _ ->
+                          ResponseCode
+                  end,
+    Length      = integer_to_list(ResponseLength),
+    TTPD        = webmachine_util:now_diff_milliseconds(EndTime, StartTime),
+    TTPS        = webmachine_util:now_diff_milliseconds(FinishTime, EndTime),
     fmt_plog(Time, 
-	     Peer, 
-	     atom_to_list(Method),
-	     Path,
-	     Version,
+             Peer, 
+             atom_to_list(Method),
+             Path,
+             Version,
              Status,
-	     Length,
-	     atom_to_list(Mod),
-	     integer_to_list(TTPD),
+             Length,
+             atom_to_list(Mod),
+             integer_to_list(TTPD),
              integer_to_list(TTPS)).
 
 
